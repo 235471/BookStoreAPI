@@ -52,6 +52,7 @@ livroSchema.statics.queryConfig = {
   'editora.email': 'regex',
   'editora.status': 'exact',
   preco: 'range',
+  paginas: 'range',
 };
 const books = mongoose.model('Livros', livroSchema, 'Livros');
 

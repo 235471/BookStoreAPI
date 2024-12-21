@@ -19,7 +19,7 @@ function buildQuery(params, model) {
   }
   return query;
 }
-function constructFieldQuery(fieldType, key, value, operator) {
+function constructFieldQuery(fieldType, value, operator) {
   if (fieldType === 'regex') {
     return { $regex: value, $options: 'i' };
   } else if (fieldType === 'exact') {
@@ -38,12 +38,12 @@ function AssignQuery(queryConfig, key, value, query, operator) {
     const fieldType = queryConfig[key];
     if (fieldType === 'range') {
       if (query[key]) {
-        query[key] = { ...query[key], ...constructFieldQuery(fieldType, key, value, operator) };
+        query[key] = { ...query[key], ...constructFieldQuery(fieldType, value, operator) };
       } else {
-        query[key] = constructFieldQuery(fieldType, key, value, operator);
+        query[key] = constructFieldQuery(fieldType, value, operator);
       }
     } else {
-      const fieldQuery = constructFieldQuery(queryConfig[key], key, value, operator);
+      const fieldQuery = constructFieldQuery(queryConfig[key], value, operator);
       if (fieldQuery) {
         query[key] = fieldQuery; // Simply apply the fieldQuery to the corresponding key
       }
