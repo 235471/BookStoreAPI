@@ -73,7 +73,6 @@ class LivroController {
     // Get Author and Publisher ID based on the query
     const authorIds = await LivroController.getIdsByQuery(authorQuery, author);
     const publisherIds = await LivroController.getIdsByQuery(publisherQuery, publisher);
-
     // Search any book matches by author and publisher
     return books
       .find({
@@ -120,7 +119,7 @@ class LivroController {
     try {
       const id = req.params.id;
       const updatebook = await books.findByIdAndUpdate(id, req.body, { new: true });
-      LivroController.checkEmpty();
+      LivroController.checkEmpty(updatebook);
       return res.status(200).json(updatebook);
     } catch (error) {
       next(error);
