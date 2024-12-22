@@ -2,6 +2,7 @@ import { books, author, publisher } from '../models/index.js';
 import NotFound from '../erros/NotFound.js';
 import buildQuery from '../utils/buildQuery.js';
 import separateQueryParams from '../utils/separateQuery.js';
+import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
 
 class LivroController {
   static async createBookWithOrWithoutAuthor(req, res, next) {
@@ -25,15 +26,10 @@ class LivroController {
   static async listAllBooks(req, res, next) {
     try {
       const bookList = await books.find({}).populate(['autor', 'editora']).exec();
-      LivroController.checkEmpty(bookList);
+      checkEmpty(bookList);
       return res.status(200).json(bookList);
     } catch (error) {
       next(error);
-    }
-  }
-  static checkEmpty(list) {
-    if (!list || list.length === 0) {
-      throw new NotFound('No Books found within these parameters');
     }
   }
   // Find Author and Publisher Id's with Query
@@ -49,11 +45,14 @@ class LivroController {
       const { bookQuery, authorQuery, publisherQuery } = separateQueryParams(req.query);
       // If any of the book attributes were used as search parameters
       let bookList = [];
-      if (Object.keys(bookQuery).length > 0) {
-        const bookQueryBuilt = buildQuery(bookQuery, books);
+      const bookQueryBuilt = buildQuery(bookQuery, books);
+      if (isObjectEmpty(bookQueryBuilt) && isObjectEmpty(authorQuery) && isObjectEmpty(publisherQuery)) {
+        return res.status(200).json([]);
+      }
+      if (!isObjectEmpty(bookQueryBuilt)) {
         bookList = await books.find(bookQueryBuilt).populate(['autor', 'editora']).exec();
         // Throw not found
-        LivroController.checkEmpty(bookList);
+        checkEmpty(bookList);
 
         // Check if any properties related to author or publisher are included in the query
         if (Object.keys(authorQuery).length > 0 || Object.keys(publisherQuery).length > 0) {
@@ -119,7 +118,7 @@ class LivroController {
     try {
       const id = req.params.id;
       const updatebook = await books.findByIdAndUpdate(id, req.body, { new: true });
-      LivroController.checkEmpty(updatebook);
+      checkEmpty(updatebook);
       return res.status(200).json(updatebook);
     } catch (error) {
       next(error);

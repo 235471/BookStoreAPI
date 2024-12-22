@@ -1,6 +1,6 @@
 import { author } from '../models/index.js';
 import buildQuery from '../utils/buildQuery.js';
-import checkEmpty from '../utils/checkEmptyArray.js';
+import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
 
 class AuthorController {
   static async listAllAuthors(req, res, next) {
@@ -60,6 +60,9 @@ class AuthorController {
   static async listAuthorsByQuery(req, res, next) {
     try {
       const query = buildQuery(req.query, author);
+      if (isObjectEmpty(query)) {
+        res.status(200).json([]);
+      }
       const authorList = await author.find(query);
 
       checkEmpty(authorList, 'No Authors found within these parameters');

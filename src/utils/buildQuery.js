@@ -6,6 +6,7 @@ function buildQuery(params, model) {
   for (const [key, value] of Object.entries(params)) {
     // Handle range fields
     if ((key.includes('min') || key.includes('max')) && !isNaN(Number(value))) {
+      if (!value || !queryConfig[key]) continue;
       handleRangeFields(query, key, value);
     } else {
       if (!value || !queryConfig[key]) continue; // ignore fields that are not mapped

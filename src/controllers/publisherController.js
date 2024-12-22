@@ -6,7 +6,7 @@ import validateSocialMedia from '../utils/validateSocialMedia.js';
 import { validateCEP, formatCep } from '../utils/validateCEP.js';
 import checkFormatPhone from '../utils/checkFormatPhone.js';
 import buildQuery from '../utils/buildQuery.js';
-import checkEmpty from '../utils/checkEmptyArray.js';
+import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
 
 class PublisherController {
   static async listAllPublishers(req, res, next) {
@@ -20,6 +20,9 @@ class PublisherController {
   static async listPublishersByQuery(req, res, next) {
     try {
       const query = buildQuery(req.query, publisher);
+      if (isObjectEmpty(query)) {
+        res.status(200).json([]);
+      }
       const publisherList = await publisher.find(query);
 
       checkEmpty(publisherList, 'No Publishers found within these parameters');

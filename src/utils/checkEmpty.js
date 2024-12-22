@@ -6,4 +6,8 @@ function checkEmpty(list, message) {
   }
 }
 
-export default checkEmpty;
+function isObjectEmpty(object) {
+  return Object.keys(object).length === 0;
+}
+
+export { checkEmpty, isObjectEmpty };
