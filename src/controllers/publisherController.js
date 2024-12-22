@@ -4,9 +4,9 @@ import isValidEmail from '../utils/validateEmail.js';
 import BaseError from '../erros/BaseError.js';
 import validateSocialMedia from '../utils/validateSocialMedia.js';
 import { validateCEP, formatCep } from '../utils/validateCEP.js';
-import NotFound from '../erros/NotFound.js';
 import checkFormatPhone from '../utils/checkFormatPhone.js';
 import buildQuery from '../utils/buildQuery.js';
+import checkEmpty from '../utils/checkEmptyArray.js';
 
 class PublisherController {
   static async listAllPublishers(req, res, next) {
@@ -22,7 +22,7 @@ class PublisherController {
       const query = buildQuery(req.query, publisher);
       const publisherList = await publisher.find(query);
 
-      if (!publisherList) throw new NotFound('No Publishers found within these parameters');
+      checkEmpty(publisherList, 'No Publishers found within these parameters');
 
       return res.status(200).json(publisherList);
     } catch (error) {
@@ -63,9 +63,9 @@ class PublisherController {
   static async deletePublisherById(req, res, next) {
     try {
       const deletedPublisher = await publisher.findByIdAndDelete(req.params.id);
-      if (!deletedPublisher) {
-        throw new NotFound('Publisher not found with the requested id');
-      }
+
+      checkEmpty(deletedPublisher, 'Error Publisher not found with the requested id');
+
       return res.status(204).send();
     } catch (error) {
       next(error);
@@ -74,9 +74,9 @@ class PublisherController {
   static async updatePublisherById(req, res, next) {
     try {
       const updatedPublisher = await publisher.findByIdAndUpdate(req.params.id, req.body);
-      if (!updatedPublisher) {
-        throw new NotFound('Publisher not found with the requested id');
-      }
+
+      checkEmpty(updatedPublisher, 'Error Publisher not found with the requested id');
+
       return res.status(200).send('Publisher updated successfully');
     } catch (error) {
       next(error);
@@ -85,9 +85,9 @@ class PublisherController {
   static async getPublisherById(req, res, next) {
     try {
       const publisherList = await publisher.findById(req.params.id);
-      if (!publisherList) {
-        throw new NotFound('Publisher not found with the requested id');
-      }
+
+      checkEmpty(publisherList, 'Error Publisher not found with the requested id');
+
       return res.status(200).json(publisherList);
     } catch (error) {
       next(error);

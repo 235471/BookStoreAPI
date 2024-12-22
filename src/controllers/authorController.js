@@ -1,6 +1,6 @@
 import { author } from '../models/index.js';
-import NotFound from '../erros/NotFound.js';
 import buildQuery from '../utils/buildQuery.js';
+import checkEmpty from '../utils/checkEmptyArray.js';
 
 class AuthorController {
   static async listAllAuthors(req, res, next) {
@@ -16,9 +16,9 @@ class AuthorController {
     const id = req.params.id;
     try {
       const authors = await author.findById(id);
-      if (!authors) {
-        throw new NotFound('Author not found');
-      }
+
+      checkEmpty(authors, 'Author not found');
+
       return res.status(200).json(authors);
     } catch (error) {
       next(error);
@@ -37,9 +37,7 @@ class AuthorController {
       const id = req.params.id;
       const updateAuthor = await author.findByIdAndUpdate(id, req.body, { new: true });
 
-      if (!updateAuthor) {
-        throw new NotFound('No author found with the requested id');
-      }
+      checkEmpty(updateAuthor, 'No author found with the requested id');
 
       return res.status(200).json(updateAuthor);
     } catch (error) {
@@ -51,9 +49,7 @@ class AuthorController {
       const id = req.params.id;
       const deletedAuthor = await author.findByIdAndDelete(id);
 
-      if (!deletedAuthor) {
-        throw new NotFound('Author not found');
-      }
+      checkEmpty(deletedAuthor, 'Author not found');
 
       return res.status(204).send();
     } catch (error) {
@@ -66,7 +62,7 @@ class AuthorController {
       const query = buildQuery(req.query, author);
       const authorList = await author.find(query);
 
-      if (!authorList) throw new NotFound('No Authors found within these parameters');
+      checkEmpty(authorList, 'No Authors found within these parameters');
 
       res.status(200).json(authorList);
     } catch (error) {
