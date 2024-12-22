@@ -4,22 +4,12 @@ function buildQuery(params, model) {
   const orQueries = []; // Store query's with multiple filters for the same field e.g book title [Hobbit, 1984]
   const andQueries = []; // Store all query's
   for (const [key, value] of Object.entries(params)) {
-    // Range Fields
+    // Handle range fields
     if ((key.includes('min') || key.includes('max')) && !isNaN(Number(value))) {
-      let field = key.replace('min', '').replace('max', ''); // Remove "min" ou "max" do nome do campo
-      field = field.toLowerCase(); // Make sure to lowercase the field name to match the database schema
-      // Apply the filter for the field
-      if (key.startsWith('min')) {
-        // If it's a "min", apply $gte (greater than or equal to)
-        query[field] = { ...query[field], $gte: Number(value) };
-      }
-      if (key.startsWith('max')) {
-        // If it's a "max", apply $lte (less than or equal to)
-        query[field] = { ...query[field], $lte: Number(value) };
-      }
+      handleRangeFields(query, key, value);
     } else {
       if (!value || !queryConfig[key]) continue; // ignore fields that are not mapped
-      // If the field contains multiple values separate by (,)
+      // Handle fields with multiple values separated by commas
       if (value.includes(',')) {
         const orQuery = {
           $or: value.split(',').map((valueBuild) => constructFieldQuery(queryConfig[key], key, valueBuild)),
@@ -45,7 +35,6 @@ function buildQuery(params, model) {
   if (andQueries.length > 0) {
     return { $and: andQueries };
   }
-
   return query;
 }
 function constructFieldQuery(fieldType, key = '', value) {
@@ -62,11 +51,23 @@ function constructFieldQuery(fieldType, key = '', value) {
 }
 
 function AssignQuery(queryConfig, key, value, query) {
-  if (queryConfig[key]) {
-    const fieldQuery = constructFieldQuery(queryConfig[key], '', value);
-    if (fieldQuery) {
-      query[key] = fieldQuery; // Simply apply the fieldQuery to the corresponding key
-    }
+  // Add simple fields to the query
+  const fieldQuery = constructFieldQuery(queryConfig[key], '', value);
+  query[key] = fieldQuery;
+}
+
+function handleRangeFields(query, key, value) {
+  let field = key.replace('min', '').replace('max', ''); // Remove "min" or "max" from the field name
+  field = field.toLowerCase(); // Ensure the field name is lowercase to match the database schema
+
+  // Apply the filter for the field
+  if (key.startsWith('min')) {
+    // If it's a "min", apply $gte (greater than or equal to)
+    query[field] = { ...query[field], $gte: Number(value) };
+  }
+  if (key.startsWith('max')) {
+    // If it's a "max", apply $lte (less than or equal to)
+    query[field] = { ...query[field], $lte: Number(value) };
   }
 }
 export default buildQuery;
