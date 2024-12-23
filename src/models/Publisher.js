@@ -54,6 +54,8 @@ publisherSchema.statics.queryConfig = {
   email: 'regex',
   status: 'exact',
 };
+// Indexes for search by nomeFantasia
+publisherSchema.index({ nomeFantasia: 1 });
 
 const publisher = mongoose.model('editora', publisherSchema);
 

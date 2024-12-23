@@ -22,6 +22,9 @@ authorSchema.statics.queryConfig = {
   name: 'regex',
   nationality: 'regex',
 };
+// Indexes for search by name and nationality
+authorSchema.index({ name: 1 });
+authorSchema.index({ nationality: 1 });
 
 const author = mongoose.model('autores', authorSchema);
 

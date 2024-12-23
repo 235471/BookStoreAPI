@@ -74,23 +74,13 @@ class LivroController {
         // Apply result to handle pagination
         req.result = books.find(query);
         result = await paginationObject(req, next); // Apply pagination to books result
-        // checkEmpty(result); // Throw not found
+        checkEmpty(result); // Throw not found
       }
       return res.status(200).json(result);
     } catch (error) {
       next(error);
     }
   }
-  static async searchByAuthorOrPublisher(authorQuery, publisherQuery) {
-    // Get Author and Publisher ID based on the query
-    const authorIds = await LivroController.getIdsByQuery(authorQuery, author);
-    const publisherIds = await LivroController.getIdsByQuery(publisherQuery, publisher);
-    const query = LivroController.prepareMongoseQuery(authorIds, publisherIds);
-    return query;
-    // Search any book matches by author and publisher
-    // return books.find(query);
-  }
-
   static prepareMongoseQuery(authorIds, publisherIds) {
     let query = {};
 
@@ -113,14 +103,6 @@ class LivroController {
     // Prepare the query for Mongoose based on IDs
     const query = LivroController.prepareMongoseQuery(authorIds, publisherIds);
     return query;
-
-    // Filter the books found matching with authors and publishers
-    // return bookList.filter((book) => {
-    //   const isAuthorMatch = authorIds ? authorIds.some((id) => id.equals(book.autor._id)) : true;
-    //   const isPublisherMatch = publisherIds ? publisherIds.some((id) => id.equals(book.editora._id)) : true;
-
-    //   return isAuthorMatch && isPublisherMatch;
-    // });
   }
   static async getBookById(req, res, next) {
     const id = req.params.id;

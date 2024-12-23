@@ -60,6 +60,10 @@ livroSchema.statics.queryConfig = {
   maxPaginas: 'exact',
 };
 
+// Indexes for search by title and price
+livroSchema.index({ titulo: 1 });
+livroSchema.index({ preco: 1 });
+
 livroSchema.plugin(autopopulate);
 
 const books = mongoose.model('Livros', livroSchema, 'Livros');
