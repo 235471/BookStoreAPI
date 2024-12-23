@@ -7,13 +7,15 @@ import { validateCEP, formatCep } from '../utils/validateCEP.js';
 import checkFormatPhone from '../utils/checkFormatPhone.js';
 import buildQuery from '../utils/buildQuery.js';
 import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
+import paginationObject from '../utils/pagination.js';
 
 class PublisherController {
   static async listAllPublishers(req, res, next) {
     try {
       const publisherList = publisher.find({});
       req.result = publisherList;
-      next();
+      const result = await paginationObject(req, next);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -24,11 +26,13 @@ class PublisherController {
       if (isObjectEmpty(query)) {
         res.status(200).json([]);
       }
-      const publisherList = await publisher.find(query);
+      const publisherList = publisher.find(query);
+      req.result = publisherList;
+      const result = await paginationObject(req, next);
 
-      checkEmpty(publisherList, 'No Publishers found within these parameters');
+      checkEmpty(result, 'No Publishers found within these parameters');
 
-      return res.status(200).json(publisherList);
+      return res.status(200).json(result);
     } catch (error) {
       next(error);
     }

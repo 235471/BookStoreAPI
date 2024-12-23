@@ -1,6 +1,5 @@
 import express from 'express';
 import LivroController from '../controllers/bookController.js';
-import paginationMiddleware from '../middleware/paginationMiddleware.js';
 
 const router = express.Router();
 
@@ -32,7 +31,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.get('/books', LivroController.listAllBooks, paginationMiddleware);
+router.get('/books', LivroController.listAllBooks);
 /**
  * @swagger
  * /books/search:

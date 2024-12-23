@@ -1,13 +1,15 @@
 import { author } from '../models/index.js';
 import buildQuery from '../utils/buildQuery.js';
 import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
+import paginationObject from '../utils/pagination.js';
 
 class AuthorController {
   static async listAllAuthors(req, res, next) {
     try {
       const authorList = author.find({});
       req.result = authorList;
-      next();
+      const result = await paginationObject(req, next);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -63,11 +65,12 @@ class AuthorController {
       if (isObjectEmpty(query)) {
         res.status(200).json([]);
       }
-      const authorList = await author.find(query);
+      const authorList = author.find(query);
+      req.result = authorList;
+      const result = await paginationObject(req, next);
+      checkEmpty(result, 'No Authors found within these parameters');
 
-      checkEmpty(authorList, 'No Authors found within these parameters');
-
-      res.status(200).json(authorList);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }

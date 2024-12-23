@@ -1,6 +1,5 @@
 import express from 'express';
 import PublisherController from '../controllers/publisherController.js';
-import paginationMiddleware from '../middleware/paginationMiddleware.js';
 
 const router = express.Router();
 /**
@@ -29,9 +28,9 @@ const router = express.Router();
  *       404:
  *         description: Bad request, No publishers found within these parameters
  *       500:
- *         description: Internal server error
+ *         description: Internal server errors
  */
-router.get('/publisher', PublisherController.listAllPublishers, paginationMiddleware);
+router.get('/publisher', PublisherController.listAllPublishers);
 /**
  * @swagger
  * /publisher/search:

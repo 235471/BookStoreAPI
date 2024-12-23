@@ -1,6 +1,5 @@
 import express from 'express';
 import AuthorController from '../controllers/authorController.js';
-import paginationMiddleware from '../middleware/paginationMiddleware.js';
 
 const router = express.Router();
 /**
@@ -31,7 +30,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.get('/author', AuthorController.listAllAuthors, paginationMiddleware);
+router.get('/author', AuthorController.listAllAuthors);
 /**
  * @swagger
  * /author/search:

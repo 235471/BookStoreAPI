@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import autopopulate from 'mongoose-autopopulate';
 /**
  * @model Book
  * @description Represents a book entity in the database.
@@ -30,11 +31,13 @@ const livroSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'autores',
       required: [true, 'Author information is required'],
+      autopopulate: true,
     },
     editora: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'editora',
       required: [true, 'Publisher information is required'],
+      autopopulate: true,
     },
   },
   { versionKey: false }
@@ -56,6 +59,9 @@ livroSchema.statics.queryConfig = {
   minPaginas: 'exact',
   maxPaginas: 'exact',
 };
+
+livroSchema.plugin(autopopulate);
+
 const books = mongoose.model('Livros', livroSchema, 'Livros');
 
 export { books, livroSchema };

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import BaseError from '../erros/BaseError.js';
 import InvalidRequisition from '../erros/InvalidRequisition.js';
+import ValidationError from '../erros/ValidationError.js';
 /**
  * @middleware errorHandler
  * @description Middleware that handle errors in the API.
@@ -15,6 +16,8 @@ function errorHandler(error, req, res, next) {
     new InvalidRequisition().sendResponse(res);
   } else if (error instanceof BaseError) {
     error.sendResponse(res);
+  } else if (error instanceof mongoose.Error.ValidationError) {
+    new ValidationError(error).sendResponse(res);
   } else {
     new BaseError().sendResponse(res);
   }

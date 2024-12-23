@@ -3,7 +3,7 @@ import NotFound from '../erros/NotFound.js';
 import buildQuery from '../utils/buildQuery.js';
 import separateQueryParams from '../utils/separateQuery.js';
 import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
-
+import paginationObject from '../utils/pagination.js';
 class LivroController {
   static async createBookWithOrWithoutAuthor(req, res, next) {
     try {
@@ -15,9 +15,9 @@ class LivroController {
         const savedBooks = await books.insertMany(completeBooks);
         return res.status(201).json({ message: 'Registration successful!', books: savedBooks });
       } else {
-        if (!findAuthor) throw new NotFound('Author not found');
+        if (!findAuthor) next(new NotFound('Author not found'));
 
-        if (!findPublisher) throw new NotFound('Publisher not found');
+        if (!findPublisher) next(new NotFound('Publisher not found'));
       }
     } catch (error) {
       next(error);
@@ -27,8 +27,8 @@ class LivroController {
     try {
       const bookList = books.find({});
       req.result = bookList;
-      req.queryOptions = { populate: ['autor', 'editora'] }; // Populate the author and publisher from collection
-      next();
+      const result = await paginationObject(req, next);
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -44,27 +44,39 @@ class LivroController {
   static async listBooksByQuery(req, res, next) {
     try {
       const { bookQuery, authorQuery, publisherQuery } = separateQueryParams(req.query);
+      let result;
+      let query = {};
       // If any of the book attributes were used as search parameters
-      let bookList = [];
       const bookQueryBuilt = buildQuery(bookQuery, books);
       if (isObjectEmpty(bookQueryBuilt) && isObjectEmpty(authorQuery) && isObjectEmpty(publisherQuery)) {
         return res.status(200).json([]);
       }
+      // Workflow 1: Query contain book information that needs to be filter first then match records filtering by Author and/or Publisher and apply pagination
+      // Workflow 2: Search for books that match the Author and/or Publisher and apply pagination
       if (!isObjectEmpty(bookQueryBuilt)) {
-        bookList = await books.find(bookQueryBuilt).populate(['autor', 'editora']).exec();
-        // Throw not found
-        checkEmpty(bookList);
+        query = bookQueryBuilt;
 
         // Check if any properties related to author or publisher are included in the query
         if (Object.keys(authorQuery).length > 0 || Object.keys(publisherQuery).length > 0) {
           // Filter books that match the specified author and publisher
-          bookList = await LivroController.filterByAuthorOrPublisher(bookList, authorQuery, publisherQuery);
+          const additionalQuery = await LivroController.prepareQueryByAuthorOrPublisher(authorQuery, publisherQuery);
+          query = { ...query, ...additionalQuery };
         }
+        // Execute the final query in MongoDB
+        const bookList = books.find(query);
+        // Apply pagination
+        req.result = bookList;
+        result = await paginationObject(req, next); // Apply pagination to books result
+        checkEmpty(result); // Throw not found
       } else {
-        bookList = await LivroController.searchByAuthorOrPublisher(authorQuery, publisherQuery);
+        // Search books that match by author and/or publisher
+        query = await LivroController.prepareQueryByAuthorOrPublisher(authorQuery, publisherQuery);
+        // Apply result to handle pagination
+        req.result = books.find(query);
+        result = await paginationObject(req, next); // Apply pagination to books result
+        // checkEmpty(result); // Throw not found
       }
-
-      return res.status(200).json(bookList);
+      return res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -73,33 +85,47 @@ class LivroController {
     // Get Author and Publisher ID based on the query
     const authorIds = await LivroController.getIdsByQuery(authorQuery, author);
     const publisherIds = await LivroController.getIdsByQuery(publisherQuery, publisher);
+    const query = LivroController.prepareMongoseQuery(authorIds, publisherIds);
+    return query;
     // Search any book matches by author and publisher
-    return books
-      .find({
-        ...(authorIds ? { autor: { $in: authorIds } } : {}),
-        ...(publisherIds ? { editora: { $in: publisherIds } } : {}),
-      })
-      .populate(['autor', 'editora'])
-      .exec();
+    // return books.find(query);
   }
 
-  static async filterByAuthorOrPublisher(bookList, authorQuery, publisherQuery) {
+  static prepareMongoseQuery(authorIds, publisherIds) {
+    let query = {};
+
+    if (authorIds && authorIds.length > 0) {
+      query.autor = { $in: authorIds };
+    }
+
+    if (publisherIds && publisherIds.length > 0) {
+      query.editora = { $in: publisherIds };
+    }
+
+    return query;
+  }
+
+  static async prepareQueryByAuthorOrPublisher(authorQuery, publisherQuery) {
     // Get Author and Publisher ID based on the query
     const authorIds = await LivroController.getIdsByQuery(authorQuery, author);
     const publisherIds = await LivroController.getIdsByQuery(publisherQuery, publisher);
 
-    // Filter the books found matching with authors and publishers
-    return bookList.filter((book) => {
-      const isAuthorMatch = authorIds ? authorIds.some((id) => id.equals(book.autor._id)) : true;
-      const isPublisherMatch = publisherIds ? publisherIds.some((id) => id.equals(book.editora._id)) : true;
+    // Prepare the query for Mongoose based on IDs
+    const query = LivroController.prepareMongoseQuery(authorIds, publisherIds);
+    return query;
 
-      return isAuthorMatch && isPublisherMatch;
-    });
+    // Filter the books found matching with authors and publishers
+    // return bookList.filter((book) => {
+    //   const isAuthorMatch = authorIds ? authorIds.some((id) => id.equals(book.autor._id)) : true;
+    //   const isPublisherMatch = publisherIds ? publisherIds.some((id) => id.equals(book.editora._id)) : true;
+
+    //   return isAuthorMatch && isPublisherMatch;
+    // });
   }
   static async getBookById(req, res, next) {
     const id = req.params.id;
     try {
-      const book = await books.findById(id).populate(['autor', 'editora']).exec();
+      const book = await books.findById(id);
       if (!book) {
         throw new NotFound('Book not found');
       }

@@ -1,4 +1,5 @@
-function pagination(query) {
+import { checkEmpty } from '../utils/checkEmpty.js';
+function paginationBuild(query) {
   const defaultLimit = parseInt(process.env.DEFAULT_PAGE_LIMIT || 10); // Use environment variable or default
   // Destructure directly with type checks and defaults
   const {
@@ -18,5 +19,29 @@ function pagination(query) {
 
   return paginationConfig;
 }
+/**
+ * @function pagination
+ * @description Function that handle pagination in the API.
+ * @param {object} req - The request object.
+ */
+async function paginationObject(req, next) {
+  try {
+    // Extract pagination details from the request query
+    const { limit, page, sortField, typeSort } = paginationBuild(req.query);
+    // Access the result promise from the controller and prepare a new promise object with pagination options
+    let query = req.result
+      .sort({ [sortField]: typeSort })
+      .skip((page - 1) * limit)
+      .limit(limit);
+    // Execute promise with all options
+    const paginationResult = await query.exec();
+    // Check if the result is empty and throw 404 not found
+    checkEmpty(paginationResult);
+    // Send the response with the pagination result
+    return paginationResult;
+  } catch (error) {
+    next(error);
+  }
+}
 
-export default pagination;
+export default paginationObject;
