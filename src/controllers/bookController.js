@@ -25,9 +25,10 @@ class LivroController {
   }
   static async listAllBooks(req, res, next) {
     try {
-      const bookList = await books.find({}).populate(['autor', 'editora']).exec();
-      checkEmpty(bookList);
-      return res.status(200).json(bookList);
+      const bookList = books.find({});
+      req.result = bookList;
+      req.queryOptions = { populate: ['autor', 'editora'] }; // Populate the author and publisher from collection
+      next();
     } catch (error) {
       next(error);
     }

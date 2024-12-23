@@ -5,9 +5,9 @@ import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
 class AuthorController {
   static async listAllAuthors(req, res, next) {
     try {
-      const query = buildQuery(req.query, author);
-      const authorList = await author.find(query);
-      return res.status(200).json(authorList);
+      const authorList = author.find({});
+      req.result = authorList;
+      next();
     } catch (error) {
       next(error);
     }

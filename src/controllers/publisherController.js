@@ -11,8 +11,9 @@ import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
 class PublisherController {
   static async listAllPublishers(req, res, next) {
     try {
-      const publisherList = await publisher.find({});
-      return res.status(200).json(publisherList);
+      const publisherList = publisher.find({});
+      req.result = publisherList;
+      next();
     } catch (error) {
       next(error);
     }
