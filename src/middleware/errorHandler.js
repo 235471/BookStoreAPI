@@ -10,6 +10,7 @@ import ValidationError from '../erros/ValidationError.js';
  * @param {object} res - The response object.
  * @param {function} next - The next middleware function.
  */
+
 // eslint-disable-next-line no-unused-vars
 function errorHandler(error, req, res, next) {
   if (error instanceof mongoose.Error.CastError) {
@@ -17,6 +18,8 @@ function errorHandler(error, req, res, next) {
   } else if (error instanceof BaseError) {
     error.sendResponse(res);
   } else if (error instanceof mongoose.Error.ValidationError) {
+    new ValidationError(error).sendResponse(res);
+  } else if (error instanceof InvalidRequisition) {
     new ValidationError(error).sendResponse(res);
   } else {
     new BaseError().sendResponse(res);

@@ -1,6 +1,6 @@
-import baseError from './BaseError.js';
+import BaseError from './BaseError.js';
 
-class InvalidRequisition extends baseError {
+class InvalidRequisition extends BaseError {
   constructor(message = 'One or more of the provided values are invalid.') {
     super(message, 400);
   }

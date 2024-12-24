@@ -1,7 +1,6 @@
 import express from 'express';
 import routes from './routes/index.js';
 import errorHandler from './middleware/errorHandler.js';
-import handler404 from './erros/handler404.js';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
@@ -218,7 +217,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 routes(app);
 
-app.use(handler404);
 app.use(errorHandler);
 
 export default app;

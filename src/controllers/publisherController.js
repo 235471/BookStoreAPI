@@ -8,6 +8,8 @@ import checkFormatPhone from '../utils/checkFormatPhone.js';
 import buildQuery from '../utils/buildQuery.js';
 import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
 import paginationObject from '../utils/pagination.js';
+import publisherSchemaJoi from '../validations/publisherValidation.js';
+import InvalidRequisition from '../erros/InvalidRequisition.js';
 
 class PublisherController {
   static async listAllPublishers(req, res, next) {
@@ -39,12 +41,20 @@ class PublisherController {
   }
   static async savePublisher(req, res, next) {
     try {
+      // Validate the request body using the Joi schema
+      const { error, value } = publisherSchemaJoi.validate(req.body, { abortEarly: false });
+      // If any error occurs during joi validation, it will be caught here
+      if (error) {
+        const errorMessages = error.details.map((erro) => erro.message).join(', '); // Get all error messages in a single string
+        throw new InvalidRequisition(errorMessages); // Send custom error message to handler
+      }
+      const { cnpj } = value;
       const cep = req.body.endereco.cep;
       const social = req.body.redesSociais;
       const email = req.body.email;
       const phone = req.body.telefone;
       // Validate format and if it's active within Brazil Government register
-      const cnpjValidation = await validateCNPJ(req.body.cnpj);
+      const cnpjValidation = await validateCNPJ(cnpj);
       if (cnpjValidation.valid) {
         if (req.body.razaoSocial.toLowerCase() !== cnpjValidation.data.razaoSocial.toLowerCase()) {
           throw new BaseError('The information you provided does not match the CNPJ records', 400);

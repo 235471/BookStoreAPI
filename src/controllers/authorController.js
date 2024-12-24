@@ -1,7 +1,9 @@
+import InvalidRequisition from '../erros/InvalidRequisition.js';
 import { author } from '../models/index.js';
 import buildQuery from '../utils/buildQuery.js';
 import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
 import paginationObject from '../utils/pagination.js';
+import authorSchemaJoi from '../validations/authorValidation.js';
 
 class AuthorController {
   static async listAllAuthors(req, res, next) {
@@ -28,8 +30,16 @@ class AuthorController {
   }
   static async saveAuthor(req, res, next) {
     try {
-      const newAuthor = await author.insertMany(req.body);
-      res.status(201).json({ message: 'Registration successful!', books: newAuthor });
+      // Validate the request body using the Joi schema
+      const { error, value } = authorSchemaJoi.validate(req.body, { abortEarly: false });
+      // If any error occurs during joi validation, it will be caught here
+      if (error) {
+        const errorMessages = error.details.map((erro) => erro.message).join(', '); // Get all error messages in a single string
+        throw new InvalidRequisition(errorMessages); // Send custom error message to handler
+      }
+      const newAuthor = value;
+      const savedAuthor = await author.insertMany(newAuthor);
+      res.status(201).json({ message: 'Registration successful!', author: savedAuthor });
     } catch (error) {
       next(error);
     }

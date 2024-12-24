@@ -4,21 +4,60 @@ import buildQuery from '../utils/buildQuery.js';
 import separateQueryParams from '../utils/separateQuery.js';
 import { checkEmpty, isObjectEmpty } from '../utils/checkEmpty.js';
 import paginationObject from '../utils/pagination.js';
+import InvalidRequisition from '../erros/InvalidRequisition.js';
+import bookSchemaJoi from '../validations/bookValidation.js';
+import { ObjectId } from 'mongodb';
 class LivroController {
-  static async createBookWithOrWithoutAuthor(req, res, next) {
-    try {
-      const newBooks = req.body;
-      const findAuthor = await author.findById(newBooks.autor);
-      const findPublisher = await publisher.findById(newBooks.editora);
-      if (findAuthor && findPublisher) {
-        const completeBooks = { ...newBooks, autor: { ...findAuthor._doc }, editora: { ...findPublisher._doc } };
-        const savedBooks = await books.insertMany(completeBooks);
-        return res.status(201).json({ message: 'Registration successful!', books: savedBooks });
-      } else {
-        if (!findAuthor) next(new NotFound('Author not found'));
+  static async findAuthorAndPublisher(authorId, publisherId) {
+    // Find the author and publisher by ID
+    return Promise.all([author.findById(authorId), publisher.findById(publisherId)]);
+  }
 
-        if (!findPublisher) next(new NotFound('Publisher not found'));
+  static validateAuthorAndPublisher(findAuthor, findPublisher) {
+    // Validate if both author and publisher exist in the database
+    if (!findAuthor && !findPublisher) {
+      throw new NotFound('Author and Publisher not found');
+    }
+    // Validate if the author exist in the database
+    if (!findAuthor) {
+      throw new NotFound('Author not found');
+    }
+    // Validate if the publisher exist in the database
+    if (!findPublisher) {
+      throw new NotFound('Publisher not found');
+    }
+  }
+  static objectIdValidation(id, name) {
+    // Convert the ID to mongo ObjectId
+    try {
+      return new ObjectId(id);
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      throw new InvalidRequisition(`${name} has an invalid ID`); // conversion error
+    }
+  }
+  static async createBook(req, res, next) {
+    try {
+      // Validate the request body using the Joi schema
+      const { error, value } = bookSchemaJoi.validate(req.body, { abortEarly: false });
+      // If any error occurs during joi validation, it will be caught here
+      if (error) {
+        const errorMessages = error.details.map((detail) => detail.message).join(', '); // Get all error messages in a single string
+        throw new InvalidRequisition(errorMessages); // Send custom error message to handler
       }
+      const { autor, editora, ...newBooks } = value; // Get author and publisher and book info from request body
+
+      const autorId = LivroController.objectIdValidation(autor, 'Author', next);
+      const editoraId = LivroController.objectIdValidation(editora, 'Author', next);
+      // Get the author and publisher from the database
+      const [findAuthor, findPublisher] = await LivroController.findAuthorAndPublisher(autorId, editoraId);
+      // Validate if the author and publisher exist in the database
+      LivroController.validateAuthorAndPublisher(findAuthor, findPublisher);
+      // Create the new book with the author, publisher, book information
+      const completeBooks = { ...newBooks, autor: autorId, editora: editoraId };
+      const savedBooks = await books.insertMany(completeBooks);
+      // Return the response with the created book
+      return res.status(201).json({ message: 'Registration successful!', books: savedBooks });
     } catch (error) {
       next(error);
     }
@@ -118,7 +157,7 @@ class LivroController {
   }
   static async saveBook(req, res, next) {
     try {
-      return await LivroController.createBookWithOrWithoutAuthor(req, res);
+      return await LivroController.createBook(req, res, next);
     } catch (error) {
       next(error);
     }
