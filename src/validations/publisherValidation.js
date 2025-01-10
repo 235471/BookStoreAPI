@@ -12,9 +12,7 @@ const publisherSchemaJoi = Joi.object({
   cnpj: Joi.string().trim().required().messages({
     'any.required': 'Publisher cnpj is required',
     'string.empty': 'Publisher cnpj cannot be empty',
-    'string.length': 'Publisher cnpj must be 14 digits long',
-    'string.pattern.base': 'Publisher cnpj must contain only numbers',
   }),
-});
+}).unknown();
 
 export default publisherSchemaJoi;

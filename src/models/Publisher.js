@@ -26,7 +26,7 @@ const publisherSchema = new mongoose.Schema(
       cidade: { type: String },
       municipio: { type: String },
       numero: { type: String },
-      complemento: { type: String },
+      complemento: { type: String, required: false },
       cep: { type: String },
     },
     email: { type: [String] },

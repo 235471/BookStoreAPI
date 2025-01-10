@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import app from './src/app.js';
-import './src/controllers/dbConnect.js';
+import './src/config/dbConnect.js';
 
 const PORT = 3000;
 

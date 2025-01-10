@@ -1,6 +1,6 @@
 class BaseError extends Error {
   constructor(message = 'Server Internal Error', status = 500) {
-    super();
+    super(message);
     this.message = message;
     this.status = status;
   }

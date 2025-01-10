@@ -1,4 +1,3 @@
-import { checkEmpty } from '../utils/checkEmpty.js';
 function paginationBuild(query) {
   const defaultLimit = parseInt(process.env.DEFAULT_PAGE_LIMIT || 10); // Use environment variable or default
   // Destructure directly with type checks and defaults
@@ -35,8 +34,6 @@ async function paginationObject(req, next) {
       .limit(limit);
     // Execute promise with all options
     const paginationResult = await query.exec();
-    // Check if the result is empty and throw 404 not found
-    checkEmpty(paginationResult);
     // Send the response with the pagination result
     return paginationResult;
   } catch (error) {

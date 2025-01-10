@@ -1,7 +1,7 @@
 import cep from 'cep-promise';
 import BaseError from '../erros/BaseError.js';
 
-async function validateCEP(cepInput) {
+async function validateCEP(cepInput, endereco) {
   try {
     let cepFormat = cepInput.replace(/[^\d]/g, '');
 
@@ -11,8 +11,9 @@ async function validateCEP(cepInput) {
     cepFormat = cepFormat.replace(/(\d{5})(\d{3})/, '$1-$2');
 
     const address = await cep(cepFormat);
-    const { logradouro, bairro, cidade, municipio } = address;
-    return { logradouro, bairro, cidade, municipio };
+    endereco.logradouro = address.street;
+    endereco.bairro = address.neighborhood;
+    endereco.cidade = address.city;
     // eslint-disable-next-line no-unused-vars
   } catch (error) {
     throw new BaseError('Invalid CEP', 400);

@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { connectDB, connectMongooseDB } from '../config/dbConfig.js';
+import { connectDB, connectMongooseDB } from './dbConfig.js';
 
 // Connecting with DB either mongoDriver or Mongoose
 // const connection         = await connectDB(process.env.DB_CONNECTION_STRING);

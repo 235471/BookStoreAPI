@@ -11,6 +11,7 @@ class AuthorController {
       const authorList = author.find({});
       req.result = authorList;
       const result = await paginationObject(req, next);
+      checkEmpty(result, 'No Authors found in the database');
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -76,6 +77,7 @@ class AuthorController {
         res.status(200).json([]);
       }
       const authorList = author.find(query);
+
       req.result = authorList;
       const result = await paginationObject(req, next);
       checkEmpty(result, 'No Authors found within these parameters');

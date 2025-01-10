@@ -9,6 +9,12 @@ const authorSchemaJoi = Joi.object({
     'any.required': 'Author nationality is required',
     'string.empty': 'Author nationality cannot be empty',
   }),
+  birthDate: Joi.string().trim().optional().messages({
+    'string.empty': 'Birth date cannot be empty',
+  }),
+  biography: Joi.string().trim().optional().messages({
+    'string.empty': 'Biography cannot be empty',
+  }),
 });
 
 export default authorSchemaJoi;

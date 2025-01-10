@@ -17,6 +17,7 @@ class PublisherController {
       const publisherList = publisher.find({});
       req.result = publisherList;
       const result = await paginationObject(req, next);
+      checkEmpty(result, 'No Publishers found in the database');
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -66,7 +67,7 @@ class PublisherController {
 
       if (social) validateSocialMedia(social);
 
-      if (cep) req.body.endereco = await validateCEP(cep);
+      if (cep) await validateCEP(cep, req.body.endereco);
       req.body.endereco.cep = formatCep(cep);
       if (phone) req.body.telefone = checkFormatPhone(phone);
 
