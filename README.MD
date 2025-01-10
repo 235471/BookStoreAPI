@@ -91,7 +91,7 @@ npm run dev
 
 ## 🧪 Testing
 
-The project includes comprehensive test suites using Jest:
+The project includes basic test suites using Jest:
 
 ```bash
 # Run tests with coverage
